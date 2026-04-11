@@ -65,7 +65,7 @@ export default function App() {
                 Rithvik Photo Studio
               </h1>
               <p style={{ color: '#bfdbfe', fontSize: '0.68rem', margin: 0, letterSpacing: '2px', textTransform: 'uppercase' }}>
-                Professional • Free • Instant
+                Professional • Instant
               </p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function App() {
 
         {/* Footer */}
         <p style={{ textAlign: 'center', fontSize: '0.7rem', color: '#94a3b8', paddingBottom: '16px' }}>
-          Made with ❤️ by Rithvik • All processing local • No data uploaded
+          Made with ❤️ by Rithvik
         </p>
       </main>
     </div>

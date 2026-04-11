@@ -107,7 +107,7 @@ function Home({ onSelectMode }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           {[
             '🤖 AI Background Removal',
-            '✂️ Auto + Manual Crop',
+            '✂️ Auto + Manual Cropping',
             '🎨 Custom Color Picker',
             '👤 Auto Face Centering',
             '📸 Studio Enhancement',
