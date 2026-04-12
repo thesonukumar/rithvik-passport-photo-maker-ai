@@ -6,6 +6,7 @@ import BgRemover from './components/BgRemover'
 import ColorPicker from './components/ColorPicker'
 import PassportCropper from './components/PassportCropper'
 import SheetPreview from './components/SheetPreview'
+import AadharFlow from './components/AadharFlow'
 
 const PASSPORT_STEPS = [
   { id: 1, label: 'Upload',    icon: '📤' },
@@ -194,17 +195,8 @@ export default function App() {
           </>
         )}
 
-        {/* AADHAAR FLOW — coming soon */}
         {mode === 'aadhaar' && (
-          <div className="neo-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🪪</div>
-            <h2 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem', fontWeight: 700 }}>
-              Aadhaar Card Maker
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '8px' }}>
-              Coming in next step...
-            </p>
-          </div>
+          <AadharFlow onBack={handleReset} />
         )}
 
         {/* Footer */}
