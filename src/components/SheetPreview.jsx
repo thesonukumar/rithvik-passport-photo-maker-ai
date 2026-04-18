@@ -12,6 +12,7 @@ const PHOTO_H = 531    // 45mm
 const COLS = 4
 const ROWS = 2
 const GAP = 20         // small gap between photos in pixels
+const BORDER = 25      // border around sheet edges (~3.4mm at 300 DPI)
 
 function SheetPreview({ croppedImage, onBack }) {
   const [sheetImage, setSheetImage] = useState(null)
@@ -29,9 +30,9 @@ function SheetPreview({ croppedImage, onBack }) {
     img.onload = () => {
       const canvas = canvasRef.current
 
-      // Canvas size = photos + gaps only (tight layout)
-      const totalW = COLS * PHOTO_W + (COLS - 1) * GAP
-      const totalH = ROWS * PHOTO_H + (ROWS - 1) * GAP
+      // Canvas size = photos + gaps + border on all sides
+      const totalW = COLS * PHOTO_W + (COLS - 1) * GAP + BORDER * 2
+      const totalH = ROWS * PHOTO_H + (ROWS - 1) * GAP + BORDER * 2
 
       canvas.width = totalW
       canvas.height = totalH
@@ -42,11 +43,11 @@ function SheetPreview({ croppedImage, onBack }) {
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(0, 0, totalW, totalH)
 
-      // Draw 8 photos — 4 cols x 2 rows
+      // Draw 8 photos — 4 cols x 2 rows (offset by BORDER)
       for (let row = 0; row < ROWS; row++) {
         for (let col = 0; col < COLS; col++) {
-          const x = col * (PHOTO_W + GAP)
-          const y = row * (PHOTO_H + GAP)
+          const x = BORDER + col * (PHOTO_W + GAP)
+          const y = BORDER + row * (PHOTO_H + GAP)
           ctx.drawImage(img, x, y, PHOTO_W, PHOTO_H)
         }
       }
