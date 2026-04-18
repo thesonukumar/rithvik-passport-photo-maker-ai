@@ -57,9 +57,11 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
               width: '48px', height: '48px', borderRadius: '14px',
-              background: 'rgba(255,255,255,0.2)',
+              background: 'linear-gradient(135deg, #a78bfa, #6366f1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.6rem'
+              fontSize: '1.6rem',
+              boxShadow: '0 0 16px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.15)',
             }}>📸</div>
             <div>
               <h1 style={{ color: 'white', fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
@@ -197,6 +199,38 @@ export default function App() {
 
         {mode === 'aadhaar' && (
           <AadharFlow onBack={handleReset} />
+        )}
+
+        {/* AADHAAR A4 PRINT */}
+        {mode === 'aadhaar-a4' && (
+          <div className="neo-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🖨️</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
+              Print Aadhaar on A4 Sheet
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
+              Coming soon...
+            </p>
+            <button className="neo-btn-ghost" style={{ marginTop: '20px' }} onClick={handleReset}>
+              ← Back to Home
+            </button>
+          </div>
+        )}
+
+        {/* BIO DATA MAKER */}
+        {mode === 'biodata' && (
+          <div className="neo-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
+              Bio Data Maker
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
+              Coming soon...
+            </p>
+            <button className="neo-btn-ghost" style={{ marginTop: '20px' }} onClick={handleReset}>
+              ← Back to Home
+            </button>
+          </div>
         )}
 
         {/* Footer */}

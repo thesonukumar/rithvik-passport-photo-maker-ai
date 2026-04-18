@@ -123,8 +123,8 @@ body {
 }
 
 .header-gradient {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-  box-shadow: 0 4px 24px #1e3a8a55;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #7c3aed 100%);
+  box-shadow: 0 4px 24px #1e1a4a66;
 }
 
 .icon-badge {
