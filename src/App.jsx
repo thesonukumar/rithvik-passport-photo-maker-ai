@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react'
+import { useState } from 'react'
 import './index.css'
 import Home from './components/Home'
 import Uploader from './components/Uploader'
@@ -7,8 +7,7 @@ import ColorPicker from './components/ColorPicker'
 import PassportCropper from './components/PassportCropper'
 import SheetPreview from './components/SheetPreview'
 import AadharFlow from './components/AadharFlow'
-
-const AadharPrintFlow = lazy(() => import('./components/AadharPrintFlow'))
+import AadharPrintFlow from './components/AadharPrintFlow'
 
 const PASSPORT_STEPS = [
   { id: 1, label: 'Upload',    icon: '📤' },
@@ -205,15 +204,7 @@ export default function App() {
 
         {/* AADHAAR A4 PRINT */}
         {mode === 'aadhaar-a4' && (
-          <Suspense fallback={
-            <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
-              <div style={{ marginBottom: '10px', fontSize: '1.5rem' }}>⌛</div>
-              <div>Loading Document Scanner...</div>
-              <div style={{ fontSize: '0.8rem', marginTop: '5px' }}>Downloading one-time 8MB package.</div>
-            </div>
-          }>
-            <AadharPrintFlow onBack={handleReset} />
-          </Suspense>
+          <AadharPrintFlow onBack={handleReset} />
         )}
 
         {/* BIO DATA MAKER */}
