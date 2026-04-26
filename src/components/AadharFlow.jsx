@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react'
+import ReactCrop from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
 
 const SHEET_W = 1240
 const SHEET_H = 1748
@@ -14,13 +16,12 @@ function AadharFlow({ onBack }) {
 
     // Manual selection state
     const [selecting, setSelecting] = useState(null) // 'front' | 'back'
-    const [selBox, setSelBox] = useState(null)
-    const [dragStart, setDragStart] = useState(null)
-    const [imgScale, setImgScale] = useState(1)
+    const [crop, setCrop] = useState(null)
+    const [dragPos, setDragPos] = useState(null)
 
     const canvasRef = useRef(null)
-    const selCanvasRef = useRef(null)
     const imgRef = useRef(null)
+    const zoomCanvasRef = useRef(null)
 
     const handleFileUpload = (file) => {
         if (!file) return
@@ -71,92 +72,107 @@ function AadharFlow({ onBack }) {
 
     const initSelectionCanvas = (type) => {
         setSelecting(type)
-        setSelBox(null)
-
-        setTimeout(() => {
-            const canvas = selCanvasRef.current
-            if (!canvas || !imgRef.current) return
-            const img = imgRef.current
-            const maxW = 340
-            const scale = maxW / img.naturalWidth
-            setImgScale(scale)
-            canvas.width = maxW
-            canvas.height = img.naturalHeight * scale
-            drawSelCanvas(null, scale)
-        }, 100)
+        setCrop(undefined)
     }
 
-    const drawSelCanvas = (box, scale) => {
-        const canvas = selCanvasRef.current
-        if (!canvas || !imgRef.current) return
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(imgRef.current, 0, 0, canvas.width, canvas.height)
+    const updateMagnifier = (e) => {
+        const img = imgRef.current
+        if (!img) return
 
-        if (box) {
-            ctx.fillStyle = 'rgba(59,130,246,0.15)'
-            ctx.fillRect(box.x, box.y, box.w, box.h)
-            ctx.strokeStyle = '#3b82f6'
-            ctx.lineWidth = 2
-            ctx.setLineDash([6, 3])
-            ctx.strokeRect(box.x, box.y, box.w, box.h)
-            ctx.setLineDash([])
-
-            // Label
-            ctx.fillStyle = '#3b82f6'
-            ctx.font = 'bold 13px Inter, sans-serif'
-            ctx.fillText(selecting === 'front' ? '▶ FRONT' : '▶ BACK', box.x + 6, box.y + 18)
-        }
-    }
-
-    const getPos = (e, canvas) => {
-        const rect = canvas.getBoundingClientRect()
+        const rect = img.getBoundingClientRect()
         const clientX = e.touches ? e.touches[0].clientX : e.clientX
         const clientY = e.touches ? e.touches[0].clientY : e.clientY
-        return {
-            x: (clientX - rect.left) * (canvas.width / rect.width),
-            y: (clientY - rect.top) * (canvas.height / rect.height)
+
+        const x = clientX - rect.left
+        const y = clientY - rect.top
+
+        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+           setDragPos(null)
+           return
         }
+
+        setDragPos({ x, y })
+        drawZoomLens(x, y, rect.width, rect.height)
     }
 
-    const handleSelStart = (e) => {
-        e.preventDefault()
-        const pos = getPos(e, selCanvasRef.current)
-        setDragStart(pos)
-        setSelBox({ x: pos.x, y: pos.y, w: 0, h: 0 })
+    const drawZoomLens = (x, y, dispW, dispH) => {
+        const canvas = zoomCanvasRef.current
+        const img = imgRef.current
+        if (!canvas || !img) return
+
+        const ctx = canvas.getContext('2d')
+        const zoomSize = 160 // Increased from 120 to show more area
+        const zoomFactor = 0.8 // Slightly zoomed out to show even more context
+
+        canvas.width = zoomSize
+        canvas.height = zoomSize
+
+        ctx.clearRect(0, 0, zoomSize, zoomSize)
+
+        ctx.beginPath()
+        ctx.arc(zoomSize / 2, zoomSize / 2, zoomSize / 2, 0, Math.PI * 2)
+        ctx.clip()
+
+        const natX = (x / dispW) * img.naturalWidth
+        const natY = (y / dispH) * img.naturalHeight
+
+        ctx.drawImage(
+          img,
+          natX - (zoomSize / 2) / zoomFactor,
+          natY - (zoomSize / 2) / zoomFactor,
+          zoomSize / zoomFactor,
+          zoomSize / zoomFactor,
+          0, 0, zoomSize, zoomSize
+        )
+
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.8)'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(zoomSize / 2, 0)
+        ctx.lineTo(zoomSize / 2, zoomSize)
+        ctx.moveTo(0, zoomSize / 2)
+        ctx.lineTo(zoomSize, zoomSize / 2)
+        ctx.stroke()
     }
 
-    const handleSelMove = (e) => {
-        e.preventDefault()
-        if (!dragStart) return
-        const pos = getPos(e, selCanvasRef.current)
-        const box = {
-            x: Math.min(dragStart.x, pos.x),
-            y: Math.min(dragStart.y, pos.y),
-            w: Math.abs(pos.x - dragStart.x),
-            h: Math.abs(pos.y - dragStart.y)
-        }
-        setSelBox(box)
-        drawSelCanvas(box, imgScale)
+    const onImageLoad = (e) => {
+        const { width, height } = e.currentTarget
+        const w = width * 0.8
+        const h = w / 1.58
+        setCrop({
+            unit: 'px',
+            width: w,
+            height: h,
+            x: (width - w) / 2,
+            y: (height - h) / 2
+        })
     }
-
-    const handleSelEnd = () => setDragStart(null)
 
     const confirmSelection = () => {
-        if (!selBox || selBox.w < 20 || selBox.h < 20) {
+        if (!crop || crop.width < 20 || crop.height < 20) {
             alert('Please select a larger area!')
             return
         }
 
         const canvas = document.createElement('canvas')
         const img = imgRef.current
-        canvas.width = selBox.w / imgScale
-        canvas.height = selBox.h / imgScale
+
+        const scaleX = img.naturalWidth / img.width
+        const scaleY = img.naturalHeight / img.height
+
+        const sx = crop.x * scaleX
+        const sy = crop.y * scaleY
+        const sw = crop.width * scaleX
+        const sh = crop.height * scaleY
+
+        canvas.width = sw
+        canvas.height = sh
         const ctx = canvas.getContext('2d')
 
         ctx.drawImage(img,
-            selBox.x / imgScale, selBox.y / imgScale,
-            canvas.width, canvas.height,
-            0, 0, canvas.width, canvas.height
+            sx, sy,
+            sw, sh,
+            0, 0, sw, sh
         )
 
         const result = canvas.toDataURL('image/jpeg', 0.95)
@@ -167,7 +183,7 @@ function AadharFlow({ onBack }) {
             setBackCard(result)
         }
         setSelecting(null)
-        setSelBox(null)
+        setCrop(null)
     }
 
     const generateSheet = () => {
@@ -315,9 +331,7 @@ function AadharFlow({ onBack }) {
 
                     <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #d1d9e6, transparent)', marginBottom: '22px' }} />
 
-                    {/* Hidden reference image */}
-                    <img ref={imgRef} src={previewUrl} alt="Aadhaar"
-                        style={{ display: 'none' }} />
+
 
                     {/* Status */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
@@ -340,22 +354,54 @@ function AadharFlow({ onBack }) {
                     {selecting && (
                         <div style={{ marginBottom: '14px' }}>
                             <p style={{ margin: '0 0 8px', fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600, textAlign: 'center' }}>
-                                Drag to select the {selecting} of the card:
+                                Drag to perfectly frame the {selecting} of the card:
                             </p>
-                            <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '4px 4px 10px #c5cad4' }}>
-                                <canvas ref={selCanvasRef}
-                                    onMouseDown={handleSelStart}
-                                    onMouseMove={handleSelMove}
-                                    onMouseUp={handleSelEnd}
-                                    onTouchStart={handleSelStart}
-                                    onTouchMove={handleSelMove}
-                                    onTouchEnd={handleSelEnd}
-                                    style={{ display: 'block', maxWidth: '100%', cursor: 'crosshair', touchAction: 'none' }}
+                            <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: '4px 4px 10px #c5cad4', background: '#f8fafc' }}
+                                onPointerDownCapture={updateMagnifier}
+                                onPointerMoveCapture={(e) => { if (e.buttons > 0 || e.pointerType === 'touch') updateMagnifier(e) }}
+                                onPointerUpCapture={() => setDragPos(null)}
+                                onPointerCancelCapture={() => setDragPos(null)}
+                                onTouchStartCapture={updateMagnifier}
+                                onTouchMoveCapture={updateMagnifier}
+                                onTouchEndCapture={() => setDragPos(null)}
+                                onTouchCancelCapture={() => setDragPos(null)}
+                            >
+                                <ReactCrop 
+                                    crop={crop} 
+                                    onChange={c => setCrop(c)}
+                                    style={{ maxWidth: '100%', maxHeight: '60vh' }}
+                                >
+                                    <img 
+                                        ref={imgRef} 
+                                        src={previewUrl} 
+                                        onLoad={onImageLoad} 
+                                        style={{ display: 'block', maxWidth: '100%', height: 'auto' }} 
+                                        alt="Aadhaar to crop"
+                                    />
+                                </ReactCrop>
+                                
+                                {/* Magnifying Glass Overlay */}
+                                <canvas
+                                  ref={zoomCanvasRef}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    left: '10px',
+                                    width: '160px',
+                                    height: '160px',
+                                    borderRadius: '50%',
+                                    border: '3px solid #ffffff',
+                                    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                                    display: dragPos ? 'block' : 'none',
+                                    pointerEvents: 'none',
+                                    zIndex: 10,
+                                    background: 'white'
+                                  }}
                                 />
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                                 <button className="neo-btn-ghost" style={{ flex: 1 }}
-                                    onClick={() => { setSelecting(null); setSelBox(null) }}>
+                                    onClick={() => { setSelecting(null); setCrop(null) }}>
                                     Cancel
                                 </button>
                                 <button className="neo-btn" style={{ flex: 2 }} onClick={confirmSelection}>
