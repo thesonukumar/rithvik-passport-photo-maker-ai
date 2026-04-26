@@ -7,6 +7,7 @@ import ColorPicker from './components/ColorPicker'
 import PassportCropper from './components/PassportCropper'
 import SheetPreview from './components/SheetPreview'
 import AadharFlow from './components/AadharFlow'
+import AadharPrintFlow from './components/AadharPrintFlow'
 
 const PASSPORT_STEPS = [
   { id: 1, label: 'Upload',    icon: '📤' },
@@ -203,18 +204,7 @@ export default function App() {
 
         {/* AADHAAR A4 PRINT */}
         {mode === 'aadhaar-a4' && (
-          <div className="neo-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🖨️</div>
-            <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
-              Print Aadhaar on A4 Sheet
-            </h2>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
-              Coming soon...
-            </p>
-            <button className="neo-btn-ghost" style={{ marginTop: '20px' }} onClick={handleReset}>
-              ← Back to Home
-            </button>
-          </div>
+          <AadharPrintFlow onBack={handleReset} />
         )}
 
         {/* BIO DATA MAKER */}
