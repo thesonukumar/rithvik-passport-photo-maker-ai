@@ -93,47 +93,49 @@ function AadharCropper({ image, title, onCropDone, onBack }) {
     if (!crop || !imgRef.current) return
     setIsProcessing(true)
     try {
-      // Map crop to the 4 points format expected by warpPerspective
-      const scaleX = imgRef.current.naturalWidth / imgRef.current.width
-      const scaleY = imgRef.current.naturalHeight / imgRef.current.height
-      
-      const pts = [
-        { x: crop.x * scaleX, y: crop.y * scaleY }, // TL
-        { x: (crop.x + crop.width) * scaleX, y: crop.y * scaleY }, // TR
-        { x: crop.x * scaleX, y: (crop.y + crop.height) * scaleY }, // BL
-        { x: (crop.x + crop.width) * scaleX, y: (crop.y + crop.height) * scaleY }  // BR
-      ]
-      
-      // We pass the actual natural image to warpPerspective
-      const imgObj = new Image()
-      imgObj.src = image
-      await new Promise(resolve => { imgObj.onload = resolve })
+      // Map crop coordinates from display size back to natural size
+      const img = imgRef.current
+      const scaleX = img.naturalWidth / img.width
+      const scaleY = img.naturalHeight / img.height
 
-      const resultDataUrl = await warpPerspective(imgObj, pts, AADHAAR_W, AADHAAR_H)
+      const cropX = crop.x * scaleX
+      const cropY = crop.y * scaleY
+      const cropW = crop.width * scaleX
+      const cropH = crop.height * scaleY
+
+      // For a rectangle crop, points are top-left, top-right, bottom-right, bottom-left
+      const points = [
+        { x: cropX, y: cropY },
+        { x: cropX + cropW, y: cropY },
+        { x: cropX + cropW, y: cropY + cropH },
+        { x: cropX, y: cropY + cropH }
+      ]
+
+      const resultDataUrl = await warpPerspective(img, points, AADHAAR_W, AADHAAR_H)
       setWarpPreview(resultDataUrl)
     } catch (e) {
       console.error("Cropping failed", e)
-      alert("Failed to crop image.")
+      alert("Failed to crop. Please try again.")
     }
     setIsProcessing(false)
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', width: '100%' }}>
-      
+
       <div style={{ textAlign: 'center', width: '100%' }}>
         <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', color: '#1e293b' }}>{title}</h3>
       </div>
 
       {/* Editor View */}
-      {!warpPreview && (
+      {!isProcessing && !warpPreview && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
           <div style={{
             background: '#e8edf5', padding: '12px', borderRadius: '12px', width: '100%',
             boxShadow: 'inset 2px 2px 5px #c5cad4, inset -2px -2px 5px #ffffff'
           }}>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#3b82f6', textAlign: 'center', fontWeight: 600 }}>
-              Drag the edges or the box itself to perfectly frame the Aadhaar card!
+              Adjust the box to perfectly frame your Aadhaar card!
             </p>
           </div>
 
@@ -188,7 +190,7 @@ function AadharCropper({ image, title, onCropDone, onBack }) {
           </div>
 
           <button className="neo-btn" onClick={applyCrop} style={{ width: '100%' }} disabled={isProcessing}>
-            {isProcessing ? '⏳ Cropping...' : '✂️ Crop Card'}
+            ✂️ Crop Card
           </button>
         </div>
       )}
@@ -197,11 +199,11 @@ function AadharCropper({ image, title, onCropDone, onBack }) {
       {warpPreview && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%' }}>
           <p style={{ margin: 0, fontSize: '0.85rem', color: '#10b981', textAlign: 'center', fontWeight: 600 }}>
-            Perfect Cropped Result:
+            Perfect Crop Result:
           </p>
           <img src={warpPreview} alt="Warped result"
             style={{ width: '100%', maxWidth: '340px', borderRadius: '8px', boxShadow: '4px 4px 10px #c5cad4', border: '1px solid #cbd5e1' }} />
-          
+
           <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
             <button className="neo-btn-ghost" onClick={() => setWarpPreview(null)} style={{ flex: 1, background: '#f1f5f9' }}>
               ⟲ Retake

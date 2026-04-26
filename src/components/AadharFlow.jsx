@@ -331,8 +331,6 @@ function AadharFlow({ onBack }) {
 
                     <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #d1d9e6, transparent)', marginBottom: '22px' }} />
 
-
-
                     {/* Status */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                         {['front', 'back'].map(type => (

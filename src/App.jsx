@@ -8,6 +8,7 @@ import PassportCropper from './components/PassportCropper'
 import SheetPreview from './components/SheetPreview'
 import AadharFlow from './components/AadharFlow'
 import AadharPrintFlow from './components/AadharPrintFlow'
+import BioDataFlow from './components/BioDataFlow'
 
 const PASSPORT_STEPS = [
   { id: 1, label: 'Upload',    icon: '📤' },
@@ -209,18 +210,7 @@ export default function App() {
 
         {/* BIO DATA MAKER */}
         {mode === 'biodata' && (
-          <div className="neo-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
-            <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
-              Bio Data Maker
-            </h2>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
-              Coming soon...
-            </p>
-            <button className="neo-btn-ghost" style={{ marginTop: '20px' }} onClick={handleReset}>
-              ← Back to Home
-            </button>
-          </div>
+          <BioDataFlow onBack={handleReset} />
         )}
 
         {/* Footer */}
