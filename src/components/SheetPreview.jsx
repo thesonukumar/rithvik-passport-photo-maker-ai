@@ -14,7 +14,8 @@ const ROWS = 2
 const GAP = 20         // small gap between photos in pixels
 const BORDER = 25      // border around sheet edges (~3.4mm at 300 DPI)
 
-function SheetPreview({ croppedImage, onBack }) {
+function SheetPreview({ croppedImage, format = 'passport', onBack }) {
+  const isPostcard = format === 'postcard'
   const [sheetImage, setSheetImage] = useState(null)
   const [isGenerating, setIsGenerating] = useState(true)
   const canvasRef = useRef(null)
@@ -30,9 +31,15 @@ function SheetPreview({ croppedImage, onBack }) {
     img.onload = () => {
       const canvas = canvasRef.current
 
-      // Canvas size = photos + gaps + border on all sides
-      const totalW = COLS * PHOTO_W + (COLS - 1) * GAP + BORDER * 2
-      const totalH = ROWS * PHOTO_H + (ROWS - 1) * GAP + BORDER * 2
+      let totalW, totalH
+      
+      if (isPostcard) {
+        totalW = 1200 // 4 inches at 300dpi
+        totalH = 1800 // 6 inches at 300dpi
+      } else {
+        totalW = COLS * PHOTO_W + (COLS - 1) * GAP + BORDER * 2
+        totalH = ROWS * PHOTO_H + (ROWS - 1) * GAP + BORDER * 2
+      }
 
       canvas.width = totalW
       canvas.height = totalH
@@ -43,12 +50,17 @@ function SheetPreview({ croppedImage, onBack }) {
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(0, 0, totalW, totalH)
 
-      // Draw 8 photos — 4 cols x 2 rows (offset by BORDER)
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const x = BORDER + col * (PHOTO_W + GAP)
-          const y = BORDER + row * (PHOTO_H + GAP)
-          ctx.drawImage(img, x, y, PHOTO_W, PHOTO_H)
+      if (isPostcard) {
+        // Draw the single image with a border
+        ctx.drawImage(img, BORDER, BORDER, totalW - (BORDER * 2), totalH - (BORDER * 2))
+      } else {
+        // Draw 8 photos — 4 cols x 2 rows (offset by BORDER)
+        for (let row = 0; row < ROWS; row++) {
+          for (let col = 0; col < COLS; col++) {
+            const x = BORDER + col * (PHOTO_W + GAP)
+            const y = BORDER + row * (PHOTO_H + GAP)
+            ctx.drawImage(img, x, y, PHOTO_W, PHOTO_H)
+          }
         }
       }
 
@@ -61,7 +73,7 @@ function SheetPreview({ croppedImage, onBack }) {
 
   const handleDownload = () => {
     const link = document.createElement('a')
-    link.download = 'passport-photos-4x6.jpg'
+    link.download = isPostcard ? 'single-photo-4x6.jpg' : 'passport-photos-4x6.jpg'
     link.href = sheetImage
     link.click()
   }
@@ -94,7 +106,7 @@ function SheetPreview({ croppedImage, onBack }) {
               />
             </div>
             <p className="text-xs text-gray-400">
-              8 photos • 4×2 layout • Print ready
+              {isPostcard ? '1 photo • 4×6 Postcard' : '8 photos • 4×2 layout'} • Print ready
             </p>
           </div>
 
@@ -102,11 +114,15 @@ function SheetPreview({ croppedImage, onBack }) {
           <div className="flex gap-3 text-center flex-wrap justify-center">
             <div className="bg-blue-50 rounded-xl px-4 py-2">
               <p className="text-xs text-gray-400">Each Photo</p>
-              <p className="text-sm font-semibold text-blue-600">35×45 mm</p>
+              <p className="text-sm font-semibold text-blue-600">
+                {isPostcard ? '4×6 inches' : '35×45 mm'}
+              </p>
             </div>
             <div className="bg-blue-50 rounded-xl px-4 py-2">
               <p className="text-xs text-gray-400">Layout</p>
-              <p className="text-sm font-semibold text-blue-600">4 × 2 grid</p>
+              <p className="text-sm font-semibold text-blue-600">
+                {isPostcard ? '1 photo' : '4 × 2 grid'}
+              </p>
             </div>
             <div className="bg-blue-50 rounded-xl px-4 py-2">
               <p className="text-xs text-gray-400">Resolution</p>
@@ -119,7 +135,7 @@ function SheetPreview({ croppedImage, onBack }) {
             onClick={handleDownload}
             className="w-full py-4 bg-green-500 text-white font-bold text-lg rounded-xl hover:bg-green-600 transition shadow-lg"
           >
-            ⬇️ Download Sheet
+            ⬇️ {isPostcard ? 'Download Photo' : 'Download Sheet'}
           </button>
 
           {/* Start Over */}

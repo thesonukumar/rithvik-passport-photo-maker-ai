@@ -46,8 +46,8 @@ export default function App() {
     1: { title: 'Upload Your Photo',       sub: 'Clear front-facing photo works best' },
     2: { title: 'Remove Background',       sub: 'AI powered — fully in your browser' },
     3: { title: 'Choose Background Color', sub: 'Pick a passport-approved background' },
-    4: { title: 'Passport Size Crop',      sub: 'Auto crop with manual fine-tuning' },
-    5: { title: 'Download Your Sheet',     sub: '8 photos on a 4×2 print-ready sheet' },
+    4: { title: mode === 'single-photo' ? 'Postcard Size Crop' : 'Passport Size Crop',      sub: 'Auto crop with manual fine-tuning' },
+    5: { title: mode === 'single-photo' ? 'Download Your Photo' : 'Download Your Sheet',     sub: mode === 'single-photo' ? '1 photo on a 4×6 print-ready sheet' : '8 photos on a 4×2 print-ready sheet' },
   }
 
   return (
@@ -102,8 +102,8 @@ export default function App() {
           </div>
         )}
 
-        {/* PASSPORT FLOW */}
-        {mode === 'passport' && (
+        {/* PASSPORT & SINGLE PHOTO FLOW */}
+        {(mode === 'passport' || mode === 'single-photo') && (
           <>
             {/* Step Indicator */}
             <div className="neo-card" style={{ padding: '18px 20px' }}>
@@ -186,6 +186,7 @@ export default function App() {
               {currentStep === 4 && (
                 <>
                   <PassportCropper colorAppliedImage={colorAppliedImage}
+                    format={mode === 'single-photo' ? 'postcard' : 'passport'}
                     onCropDone={(img) => { setCroppedImage(img); setCurrentStep(5) }} />
                   <button className="neo-btn-ghost" style={{ marginTop: '14px', width: '100%' }}
                     onClick={() => setCurrentStep(3)}>← Back</button>
@@ -193,7 +194,7 @@ export default function App() {
               )}
 
               {currentStep === 5 && (
-                <SheetPreview croppedImage={croppedImage} onBack={handleReset} />
+                <SheetPreview croppedImage={croppedImage} format={mode === 'single-photo' ? 'postcard' : 'passport'} onBack={handleReset} />
               )}
             </div>
           </>

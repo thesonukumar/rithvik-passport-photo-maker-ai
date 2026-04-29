@@ -3,8 +3,14 @@ import { detectFaceAndCrop } from '../utils/faceDetect'
 
 const PASSPORT_W = 413
 const PASSPORT_H = 531
+const POSTCARD_W = 1200
+const POSTCARD_H = 1800
 
-function PassportCropper({ colorAppliedImage, onCropDone }) {
+function PassportCropper({ colorAppliedImage, format = 'passport', onCropDone }) {
+  const isPostcard = format === 'postcard'
+  const TARGET_W = isPostcard ? POSTCARD_W : PASSPORT_W
+  const TARGET_H = isPostcard ? POSTCARD_H : PASSPORT_H
+  const TARGET_RATIO = isPostcard ? (POSTCARD_W / POSTCARD_H) : (35 / 45)
   const [mode, setMode] = useState('auto') // 'auto' | 'manual'
   const [isProcessing, setIsProcessing] = useState(false)
   const [croppedImage, setCroppedImage] = useState(null)
@@ -64,8 +70,8 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
       imgRef.cropBox = box
 
       const canvas = canvasRef.current
-      canvas.width = PASSPORT_W
-      canvas.height = PASSPORT_H
+      canvas.width = TARGET_W
+      canvas.height = TARGET_H
       const ctx = canvas.getContext('2d')
 
       const adjW = box.width / zoom
@@ -73,10 +79,10 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
       const adjX = box.x + (box.width - adjW) / 2
       const adjY = box.y + (box.height - adjH) / 2 + yOffset
 
-      ctx.drawImage(img, adjX, adjY, adjW, adjH, 0, 0, PASSPORT_W, PASSPORT_H)
+      ctx.drawImage(img, adjX, adjY, adjW, adjH, 0, 0, TARGET_W, TARGET_H)
 
       // Studio enhancement
-      applyStudioEffect(ctx, PASSPORT_W, PASSPORT_H)
+      applyStudioEffect(ctx, TARGET_W, TARGET_H)
 
       setCroppedImage(canvas.toDataURL('image/jpeg', 0.95))
     } catch (e) { console.error(e) }
@@ -193,7 +199,7 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
     setCropBox(prev => {
       let { x, y, w, h } = prev
       const minSize = 60
-      const passRatio = 35 / 45
+      const passRatio = TARGET_RATIO
 
       if (dragging === 'move') {
         x = Math.max(0, Math.min(canvas.width - w, x + dx))
@@ -225,8 +231,8 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
 
   const applyManualCrop = () => {
     const canvas = canvasRef.current
-    canvas.width = PASSPORT_W
-    canvas.height = PASSPORT_H
+    canvas.width = TARGET_W
+    canvas.height = TARGET_H
     const ctx = canvas.getContext('2d')
     const img = imgRef.current
     const scale = imgSize.scale
@@ -234,10 +240,10 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
     ctx.drawImage(img,
       cropBox.x / scale, cropBox.y / scale,
       cropBox.w / scale, cropBox.h / scale,
-      0, 0, PASSPORT_W, PASSPORT_H
+      0, 0, TARGET_W, TARGET_H
     )
 
-    applyStudioEffect(ctx, PASSPORT_W, PASSPORT_H)
+    applyStudioEffect(ctx, TARGET_W, TARGET_H)
     const result = canvas.toDataURL('image/jpeg', 0.95)
     setCroppedImage(result)
   }
@@ -249,7 +255,7 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
     const cW = 340
     const cH = imgRef.current.height * scale
     const bW = cW * 0.55
-    const bH = bW / (35/45)
+    const bH = bW / TARGET_RATIO
     setCropBox({
       x: (cW - bW) / 2,
       y: (cH - bH) * 0.2,
@@ -321,9 +327,9 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
             </div>
             <span style={{ fontSize: '1.5rem', color: '#cbd5e1' }}>→</span>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <p style={{ margin: 0, fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Passport</p>
+              <p style={{ margin: 0, fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>{isPostcard ? 'Postcard' : 'Passport'}</p>
               <img src={croppedImage} alt="Cropped"
-                style={{ width: '110px', height: '140px', objectFit: 'cover', borderRadius: '12px',
+                style={{ width: '110px', height: isPostcard ? '165px' : '140px', objectFit: 'cover', borderRadius: '12px',
                   boxShadow: '4px 4px 10px #93c5fd, -4px -4px 10px #ffffff',
                   border: '2px solid #bfdbfe' }} />
             </div>
@@ -403,7 +409,7 @@ function PassportCropper({ colorAppliedImage, onCropDone }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8' }}>Result:</p>
               <img src={croppedImage} alt="Manual crop result"
-                style={{ width: '100px', height: '128px', objectFit: 'cover', borderRadius: '10px',
+                style={{ width: '100px', height: isPostcard ? '150px' : '128px', objectFit: 'cover', borderRadius: '10px',
                   boxShadow: '4px 4px 10px #93c5fd', border: '2px solid #bfdbfe' }} />
               <button className="neo-btn" onClick={() => onCropDone(croppedImage)}>
                 Next: Generate Sheet →
