@@ -55,7 +55,7 @@ export default function App() {
 
       {/* Header */}
       <header className="header-gradient" style={{ padding: '20px 24px' }}>
-        <div style={{ maxWidth: '520px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: !mode ? '768px' : '520px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'max-width 0.3s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
               width: '48px', height: '48px', borderRadius: '14px',
@@ -93,7 +93,7 @@ export default function App() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '520px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <main style={{ maxWidth: !mode ? '768px' : '520px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '18px', transition: 'max-width 0.3s ease' }}>
 
         {/* HOME SCREEN */}
         {!mode && (
